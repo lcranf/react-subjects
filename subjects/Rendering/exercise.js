@@ -28,13 +28,38 @@ const DATA = {
   ]
 }
 
-function Menu() {
-  return (
-    <div>
-      Open the console, you have failing tests.
-    </div>
-  )
-}
+const Menu = React.createClass({
+  getInitialState() {
+    return {
+      itemType: 'mexican'
+    }
+  },
+  setItemType(event) {
+    this.setState({ itemType: event.target.value })
+  },
+  render() {
+    const items = DATA.items
+                    .sort(sortBy('name'))
+                    .filter(item => item.type === this.state.itemType)
+
+     return (
+        <div>
+          <h1>{DATA.title}</h1>
+          <div>
+             <select onChange={this.setItemType}>
+                <option></option>
+                <option value="mexican">Mexican</option>
+                <option value="english">English</option>
+             </select>
+          </div>
+          <ul>
+            {items.map(item => <li key={item.id}>{item.name}</li>)}
+          </ul>
+          Open the console, you have failing tests.
+        </div>
+     )
+  }
+})
 
 render(<Menu/>, document.getElementById('app'), () => {
   require('./tests').run()
