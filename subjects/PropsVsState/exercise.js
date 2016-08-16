@@ -15,7 +15,7 @@
 // Make a <StatefulTabs> component that manages some state that is passed as
 // props down to <Tabs> (since it should now be stateless).
 ////////////////////////////////////////////////////////////////////////////////
-import React from 'react'
+import React, { PropTypes } from 'react'
 import { render } from 'react-dom'
 import * as styles from './lib/styles'
 import data from './lib/data'
@@ -23,22 +23,31 @@ import data from './lib/data'
 const Tabs = React.createClass({
 
   propTypes: {
-    data: React.PropTypes.array.isRequired
+    activeIndex: PropTypes.number,
+    data: PropTypes.array.isRequired,
+    onClick: PropTypes.func
   },
 
-  getInitialState() {
+  getDefaultProps() {
     return {
-      activeTabIndex: 0
+      activeIndex: 0
     }
   },
 
   handleTabClick(activeTabIndex) {
-    this.setState({ activeTabIndex })
+
+    const { onClick } = this.props
+
+    if (onClick) {
+      onClick(activeTabIndex)
+    }
   },
 
   renderTabs() {
+    const { activeIndex } = this.props
+
     return this.props.data.map((tab, index) => {
-      const style = this.state.activeTabIndex === index ?
+      const style = activeIndex === index ?
         styles.activeTab : styles.tab
       return (
         <div
@@ -52,7 +61,7 @@ const Tabs = React.createClass({
   },
 
   renderPanel() {
-    const tab = this.props.data[this.state.activeTabIndex]
+    const tab = this.props.data[this.props.activeIndex]
     return (
       <div>
         <p>{tab.description}</p>
@@ -76,12 +85,24 @@ const Tabs = React.createClass({
 })
 
 const App = React.createClass({
-
+  getInitialState() {
+    return {
+      activeIndex: 0
+    }
+  },
+  updateActiveIndex(index) {
+    this.setState({
+      activeIndex: index
+    })
+  },
   render() {
     return (
       <div>
         <h1>Props v. State</h1>
-        <Tabs ref="tabs" data={this.props.tabs}/>
+        <Tabs ref="tabs"
+              activeIndex={this.state.activeIndex}
+              onClick={this.updateActiveIndex}
+              data={this.props.tabs}/>
       </div>
     )
   }
