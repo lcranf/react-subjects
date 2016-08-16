@@ -11,7 +11,7 @@
 // - Make <Tabs> generic so that it doesn't know anything about
 //   country data (Hint: good propTypes help)
 ////////////////////////////////////////////////////////////////////////////////
-import React from 'react'
+import React, { PropTypes } from 'react'
 import { render } from 'react-dom'
 
 const styles = {}
@@ -35,17 +35,37 @@ styles.panel = {
 }
 
 const Tabs = React.createClass({
+  getInitialState() {
+    return {
+      activeIndex: 0
+    }
+  },
+  propTypes: {
+    data: PropTypes.array.isRequired
+  },
+  tabClicked(index) {
+    this.setState({ activeIndex: index })
+  },
   render() {
+    const { data } = this.props
+    const { activeIndex } = this.state
+    const tabItem = data[activeIndex]
+
     return (
       <div className="Tabs">
-        <div className="Tab" style={styles.activeTab}>
-          Active
-        </div>
-        <div className="Tab" style={styles.tab}>
-          Inactive
-        </div>
+        {
+           data.map((tab, index) =>
+              <div className="Tab"
+                   key={index}
+                   style={(index === activeIndex) ? styles.activeTab : styles.tab }
+                   onClick={() => this.tabClicked(index)}>
+                {tab.label}
+              </div>
+          )
+        }
+
         <div className="TabPanel" style={styles.panel}>
-          Panel
+          {tabItem.content}
         </div>
       </div>
     )
@@ -53,11 +73,21 @@ const Tabs = React.createClass({
 })
 
 const App = React.createClass({
+
+  propTypes: {
+    countries: PropTypes.array.isRequired
+  },
+
   render() {
+    const data = this.props.countries.map(country => (
+                            { label: country.name,
+                              content: country.description
+                            }))
+
     return (
       <div>
         <h1>Countries</h1>
-        <Tabs data={this.props.countries}/>
+        <Tabs data={data}/>
       </div>
     )
   }
