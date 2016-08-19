@@ -30,27 +30,117 @@
 // - Arrow left, arrow up should select the previous option
 ////////////////////////////////////////////////////////////////////////////////
 import React, { PropTypes } from 'react'
-import { render } from 'react-dom'
+import { render, findDOMNode } from 'react-dom'
+
+const KeyCodes = {
+  Enter: 13,
+  Space: 32,
+  RightArrow: 39,
+  DownArrow: 40,
+  LeftArrow: 37,
+  UpArrow: 38
+}
 
 const RadioGroup = React.createClass({
+
   propTypes: {
-    defaultValue: PropTypes.string
+    defaultValue: PropTypes.string,
+    children: PropTypes.any
+  },
+
+  getInitialState() {
+    return {
+      selectedOption: this.props.defaultValue
+    }
+  },
+
+  componentWillReceiveProps(nextProps) {
+    const { selectedOption } = this.state
+
+    if (selectedOption !== nextProps.defaultValue) {
+      this.setState({ selectedOption: nextProps.defaultValue })
+    }
+  },
+
+  onOptionChange(value) {
+    this.setState({ selectedOption: value })
   },
 
   render() {
-    return <div>{this.props.children}</div>
+    const children = React.Children.map(this.props.children, (child) => {
+      return React.cloneElement(child, {
+         selectedOption: this.state.selectedOption,
+         onOptionChange: this.onOptionChange
+      })
+    })
+    return <div>{ children }</div>
   }
 })
 
 const RadioOption = React.createClass({
   propTypes: {
-    value: PropTypes.string
+    value: PropTypes.string,
+    selectedOption: PropTypes.string,
+    children: PropTypes.node,
+    onOptionChange: PropTypes.func
+  },
+
+  onFocus() {
+    const { onOptionChange, value } = this.props
+
+    if (onOptionChange) {
+      onOptionChange(value)
+    }
+  },
+
+  isSelected() {
+    const { value, selectedOption } = this.props
+
+    return value === selectedOption
+  },
+
+  handleKeyDown(event) {
+
+    const { onOptionChange, value } = this.props
+
+    switch (event.keyCode) {
+      case KeyCodes.Enter:
+      case KeyCodes.Space:
+        if (onOptionChange) {
+          this.isSelected() ? onOptionChange('unselect') : onOptionChange(value)
+        }
+        break
+      case KeyCodes.RightArrow:
+      case KeyCodes.DownArrow:
+        let nextSibling = findDOMNode(this).nextSibling
+
+        if (nextSibling) {
+          nextSibling.focus()
+        } else {
+          findDOMNode(this).parentNode.firstChild.focus()
+        }
+        break
+      case KeyCodes.UpArrow:
+      case KeyCodes.LeftArrow:
+        let prevSibling = findDOMNode(this).previousSibling
+
+        if (prevSibling) {
+          prevSibling.focus()
+        } else {
+          findDOMNode(this).parentNode.lastChild.focus()
+        }
+        break
+      default:
+        break
+    }
   },
 
   render() {
+    const { value, selectedOption } = this.props
+
     return (
-      <div>
-        <RadioIcon isSelected={false}/> {this.props.children}
+      <div tabIndex="0" onKeyDown={this.handleKeyDown} onFocus={this.onFocus}>
+        <RadioIcon isSelected={ value === selectedOption }/> {this.props.children}
       </div>
     )
   }
@@ -80,12 +170,26 @@ const RadioIcon = React.createClass({
 })
 
 const App = React.createClass({
+  getInitialState() {
+    return {
+      radioValue: 'fm'
+    }
+  },
+  setRadioValue() {
+    this.setState({
+      radioValue: 'tape'
+    })
+  },
   render() {
     return (
       <div>
         <h1>♬ It's about time that we all turned off the radio ♫</h1>
+        <div>
+          <pre>{ JSON.stringify(this.state, null, 2) }</pre>
+        </div>
+        <button type="button" onClick={this.setRadioValue}>Set Tape</button>
 
-        <RadioGroup defaultValue="fm">
+        <RadioGroup defaultValue={ this.state.radioValue }>
           <RadioOption value="am">AM</RadioOption>
           <RadioOption value="fm">FM</RadioOption>
           <RadioOption value="tape">Tape</RadioOption>
