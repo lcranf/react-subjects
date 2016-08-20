@@ -9,7 +9,27 @@
 import React from 'react'
 import { render } from 'react-dom'
 
-const withMousePosition = () => {
+const withMousePosition = (Component) => {
+
+  return React.createClass({
+    getInitialState() {
+      return {
+        x: 0,
+        y: 0
+      }
+    },
+    handleMouseMove(event) {
+      this.setState({
+        x: event.clientX,
+        y: event.clientY
+      })
+    },
+    render() {
+      return <div onMouseMove={this.handleMouseMove}>
+                <Component {...this.props} mouse={this.state}/>
+             </div>
+    }
+  })
 
 }
 
