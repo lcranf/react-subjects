@@ -6,13 +6,70 @@
 //   the field names from the first record)
 // - render each result as a row in <tbody>
 import 'purecss/build/pure.css'
-import React from 'react'
+import React, { PropTypes } from 'react'
 import { render } from 'react-dom'
 import getJSON from './lib/getJSON'
 
+require('./styles.css')
+
 const JSONTable = React.createClass({
+  getInitialState() {
+    return {
+      contracts: []
+    }
+  },
+  propTypes: {
+    src: PropTypes.string.isRequired,
+    getData: PropTypes.func.isRequired
+  },
+  getHeader(contact) {
+    var rows = []
+
+    for (var key in contact) {
+      if (contact.hasOwnProperty(key)) {
+        rows.push(<th key={key}>{key}</th>)
+      }
+    }
+
+    return <tr>{rows}</tr>
+  },
+  getRow(contract) {
+    var row = []
+
+    for (var key in contract) {
+      if (contract.hasOwnProperty(key)) {
+        let value = contract[key]
+
+        row.push(<td key={value}>{value}</td>)
+      }
+    }
+
+    return row
+  },
+  componentDidMount() {
+    const { src, getData } = this.props
+
+    getJSON(src, (error, payload) => this.setState({ contracts: getData(payload) }))
+  },
   render() {
-    return <div>...</div>
+    const { contracts } = this.state
+
+    return (
+      <div>
+        <table>
+          <thead>
+             { this.getHeader(contracts[0]) }
+          </thead>
+          <tbody>
+            {
+              contracts.map((contract, index) => (
+                <tr key={index}>{ this.getRow(contract) }</tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    )
   }
 })
 
