@@ -11,18 +11,54 @@ const { func, any } = PropTypes
 // Make this work like a normal <select><option/></select>
 
 const Select = React.createClass({
+  getInitialState() {
+    return {
+      currentValue: this.props.value,
+      currentText: 'label',
+      isOpen: false
+    }
+  },
   propTypes: {
     onChange: func,
     value: any,
-    defaultValue: any
+    defaultValue: any,
+    children: PropTypes.array
   },
+  componentWillReceiveProps(nextProps) {
+    const { value } = nextProps
+    const { currentValue } = this.state
 
+    if (value && (value !== currentValue)) {
+      this.setState({ currentValue: value })
+    }
+  },
+  onOptionChange(value) {
+    const { onChange } = this.props
+
+    if (onChange) {
+      onChange(value)
+    }
+
+    this.setState({ isOpen: false })
+  },
+  onLabelClick(event) {
+    this.setState({ isOpen: !this.state.isOpen })
+  },
   render() {
+
+    const { currentValue } = this.state
+    const children = React.Children.map(this.props.children, (child) => {
+      return React.cloneElement(child, {
+         onChange: this.onOptionChange,
+         whenSelected: (text) => this.setState({ currentText: text })
+      })
+    })
+
     return (
       <div className="select">
-        <div className="label">label <span className="arrow">▾</span></div>
-        <div className="options">
-          {this.props.children}
+        <div className="label" onClick={this.onLabelClick}>{this.state.currentText} <span className="arrow">▾</span></div>
+        <div style={{ display: this.state.isOpen ? 'block' : 'none' }} className="options">
+          {children}
         </div>
       </div>
     )
@@ -31,9 +67,27 @@ const Select = React.createClass({
 
 
 const Option = React.createClass({
+  propTypes: {
+    children: any,
+    onChange: func,
+    value: PropTypes.string.isRequired,
+    whenSelected: PropTypes.func
+  },
+
+  onClick(event) {
+    const { onChange, value, children, whenSelected } = this.props
+
+    if (onChange) {
+      onChange(value)
+
+      if (whenSelected) {
+        whenSelected(children)
+      }
+    }
+  },
   render() {
     return (
-      <div className="option">{this.props.children}</div>
+      <div onClick={this.onClick} className="option">{this.props.children}</div>
     )
   }
 })
@@ -43,6 +97,10 @@ const App = React.createClass({
     return {
       selectValue: 'dosa'
     }
+  },
+
+  setToMintChutney() {
+    this.setState({ selectValue: 'mint-chutney' })
   },
 
   render() {

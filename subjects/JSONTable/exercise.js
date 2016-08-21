@@ -10,8 +10,6 @@ import React, { PropTypes } from 'react'
 import { render } from 'react-dom'
 import getJSON from './lib/getJSON'
 
-require('./styles.css')
-
 const JSONTable = React.createClass({
   getInitialState() {
     return {
@@ -56,7 +54,7 @@ const JSONTable = React.createClass({
 
     return (
       <div>
-        <table>
+        <table className="pure-table pure-table-striped">
           <thead>
              { this.getHeader(contracts[0]) }
           </thead>
